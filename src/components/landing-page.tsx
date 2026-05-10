@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Download,
   FileText,
+  Sparkles,
 } from "lucide-react";
 
 interface LandingPageProps {
@@ -87,11 +88,16 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
               exactly what you need.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             <FeatureCard
               icon={<Zap className="h-6 w-6" />}
               title="Fast Conversion"
               description="Generate your PDF in seconds. Our optimized engine processes your text instantly without any delays."
+            />
+            <FeatureCard
+              icon={<Sparkles className="h-6 w-6" />}
+              title="AI Enhancement"
+              description="Improve your text with AI before converting. Fix grammar, enhance clarity, and polish your content automatically."
             />
             <FeatureCard
               icon={<MousePointerClick className="h-6 w-6" />}

@@ -23,3 +23,25 @@ Stage Summary:
 - Download functionality
 - Responsive design with Tailwind CSS
 - Blue primary color theme
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Integrate AI API for text enhancement
+
+Work Log:
+- Stored API key securely in .env file (server-side only, never exposed to client)
+- Created /api/enhance-text server-side route that proxies to AI API
+- Added "Enhance with AI" button to converter page textarea
+- Added undo enhancement feature to revert to original text
+- Added AI Enhanced badge indicator
+- Updated landing page features section with AI Enhancement card
+- Tested AI enhancement - works correctly with Qwen model
+- Lint passes with no errors
+
+Stage Summary:
+- API key stored securely server-side in .env
+- AI enhancement feature fully integrated
+- Users can enhance text before generating PDF
+- Original text can be restored via undo button
+- Using Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8 model (qwen2.5-coder:32b-vps returned 404)

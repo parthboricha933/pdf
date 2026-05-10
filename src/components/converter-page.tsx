@@ -18,6 +18,8 @@ import {
   ArrowLeft,
   Eye,
   RefreshCw,
+  Sparkles,
+  Undo2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,11 +29,75 @@ interface ConverterPageProps {
 
 export default function ConverterPage({ onNavigate }: ConverterPageProps) {
   const [text, setText] = useState("");
+  const [originalText, setOriginalText] = useState("");
   const [pageSize, setPageSize] = useState("A4");
   const [orientation, setOrientation] = useState("portrait");
   const [isLoading, setIsLoading] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isEnhanced, setIsEnhanced] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const handleEnhance = useCallback(async () => {
+    if (!text.trim()) {
+      toast({
+        title: "No text entered",
+        description: "Please enter some text before enhancing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsEnhancing(true);
+
+    try {
+      const response = await fetch("/api/enhance-text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.enhancedText) {
+        setOriginalText(text);
+        setText(data.enhancedText);
+        setIsEnhanced(true);
+        toast({
+          title: "Text Enhanced!",
+          description:
+            "AI has improved your text. Review the changes and generate your PDF.",
+        });
+      } else {
+        throw new Error(data.error || "Failed to enhance text");
+      }
+    } catch (error) {
+      toast({
+        title: "Enhancement Failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEnhancing(false);
+    }
+  }, [text, toast]);
+
+  const handleUndoEnhance = useCallback(() => {
+    if (originalText) {
+      setText(originalText);
+      setOriginalText("");
+      setIsEnhanced(false);
+      toast({
+        title: "Reverted",
+        description: "Your original text has been restored.",
+      });
+    }
+  }, [originalText, toast]);
 
   const handleGenerate = useCallback(async () => {
     if (!text.trim()) {
@@ -141,19 +207,67 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="text-input" className="text-sm font-medium">
-                Content
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="text-input" className="text-sm font-medium">
+                  Content
+                </Label>
+                {isEnhanced && (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    <Sparkles className="h-3 w-3" />
+                    AI Enhanced
+                  </span>
+                )}
+              </div>
               <Textarea
                 id="text-input"
                 placeholder="Paste or type your text here..."
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  if (isEnhanced) {
+                    setIsEnhanced(false);
+                    setOriginalText("");
+                  }
+                }}
                 className="min-h-[280px] resize-y text-sm leading-relaxed"
               />
-              <p className="text-xs text-gray-400 text-right">
-                {text.length} characters
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-400">
+                  {text.length} characters
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEnhance}
+                    disabled={isEnhancing || !text.trim()}
+                    className="h-7 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                  >
+                    {isEnhancing ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Enhancing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-3 w-3" />
+                        Enhance with AI
+                      </>
+                    )}
+                  </Button>
+                  {isEnhanced && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleUndoEnhance}
+                      className="h-7 text-xs gap-1 text-gray-500 hover:text-gray-700"
+                    >
+                      <Undo2 className="h-3 w-3" />
+                      Undo
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -245,6 +359,14 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
                   <p className="text-sm font-medium">Generating your PDF...</p>
                   <p className="text-xs text-gray-300">
                     This usually takes a few seconds
+                  </p>
+                </div>
+              ) : isEnhancing ? (
+                <div className="flex flex-col items-center gap-4 text-gray-400">
+                  <Sparkles className="h-10 w-10 text-primary animate-pulse" />
+                  <p className="text-sm font-medium">AI is enhancing your text...</p>
+                  <p className="text-xs text-gray-300">
+                    Improving grammar, clarity, and formatting
                   </p>
                 </div>
               ) : pdfUrl ? (
