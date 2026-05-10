@@ -26,17 +26,29 @@ model Post {
 }
 
 model PdfHistory {
-  id         String   @id @default(cuid())
-  userEmail  String?
-  fileName   String
-  pdfUrl     String
-  template   String   @default("Simple")
-  font       String   @default("Arial")
-  pageSize   String   @default("A4")
-  orientation String  @default("portrait")
-  pageColor  String   @default("#FFFFFF")
-  textColor  String   @default("#000000")
-  textLength Int      @default(0)
-  emailSent  Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  userEmail   String?
+  fileName    String
+  pdfUrl      String
+  template    String   @default("Simple")
+  font        String   @default("Arial")
+  pageSize    String   @default("A4")
+  orientation String   @default("portrait")
+  pageColor   String   @default("#FFFFFF")
+  textColor   String   @default("#000000")
+  textLength  Int      @default(0)
+  emailSent   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  email       String?
+  isActive    Boolean  @default(true)
+  requestCount Int     @default(0)
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+  revokedAt   DateTime?
 }
