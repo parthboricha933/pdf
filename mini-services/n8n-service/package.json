@@ -1,0 +1,8 @@
+{
+  "name": "n8n-service",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx n8n start --port=3003 --tunnel=false"
+  }
+}

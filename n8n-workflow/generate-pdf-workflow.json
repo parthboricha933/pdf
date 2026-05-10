@@ -1,0 +1,283 @@
+{
+  "name": "Text to PDF - Full Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-pdf",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "text",
+              "name": "text",
+              "value": "={{ $json.body.text }}",
+              "type": "string"
+            },
+            {
+              "id": "pageColor",
+              "name": "pageColor",
+              "value": "={{ $json.body.pageColor || '#FFFFFF' }}",
+              "type": "string"
+            },
+            {
+              "id": "textColor",
+              "name": "textColor",
+              "value": "={{ $json.body.textColor || '#000000' }}",
+              "type": "string"
+            },
+            {
+              "id": "font",
+              "name": "font",
+              "value": "={{ $json.body.font || 'Arial' }}",
+              "type": "string"
+            },
+            {
+              "id": "template",
+              "name": "template",
+              "value": "={{ $json.body.template || 'Simple' }}",
+              "type": "string"
+            },
+            {
+              "id": "pageSize",
+              "name": "pageSize",
+              "value": "={{ $json.body.pageSize || 'A4' }}",
+              "type": "string"
+            },
+            {
+              "id": "orientation",
+              "name": "orientation",
+              "value": "={{ $json.body.orientation || 'portrait' }}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{ $json.body.email || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-input",
+      "name": "Normalize Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "" },
+          "conditions": [
+            {
+              "id": "text-not-empty",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "validate-input",
+      "name": "Validate Text",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.N8N_PDF_API_URL || 'http://localhost:3000/api/generate-pdf' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $json.text }}\",\n  \"pageColor\": \"{{ $json.pageColor }}\",\n  \"textColor\": \"{{ $json.textColor }}\",\n  \"font\": \"{{ $json.font }}\",\n  \"template\": \"{{ $json.template }}\",\n  \"pageSize\": \"{{ $json.pageSize }}\",\n  \"orientation\": \"{{ $json.orientation }}\"\n}",
+        "options": {}
+      },
+      "id": "call-pdf-api",
+      "name": "Call PDF API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [660, -100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "" },
+          "conditions": [
+            {
+              "id": "api-success",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "check-api-success",
+      "name": "Check API Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, -100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL || 'http://localhost:3000/api/pdf-history' }}/rest/v1/pdf_history",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY || '' }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=representation" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_email\": \"{{ $('Normalize Input').item.json.email }}\",\n  \"file_name\": \"document-{{ Date.now() }}.pdf\",\n  \"pdf_url\": \"{{ $json.pdfUrl }}\",\n  \"template\": \"{{ $('Normalize Input').item.json.template }}\",\n  \"font\": \"{{ $('Normalize Input').item.json.font }}\"\n}",
+        "options": {}
+      },
+      "id": "database-insert",
+      "name": "Save to Database",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1100, -200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "" },
+          "conditions": [
+            {
+              "id": "has-email",
+              "leftValue": "={{ $('Normalize Input').item.json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "check-email",
+      "name": "Has Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1320, -200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.FROM_EMAIL || 'noreply@texttopdf.app' }}",
+        "toEmail": "={{ $('Normalize Input').item.json.email }}",
+        "subject": "Your PDF is Ready",
+        "text": "Hello,\n\nYour PDF has been generated successfully.\n\nDownload it here: {{ $('Check API Success').item.json.pdfUrl }}\n\nGenerated by Text to PDF Converter",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1540, -300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"pdfUrl\": \"{{ $('Check API Success').item.json.pdfUrl }}\",\n  \"fileName\": \"document.pdf\",\n  \"template\": \"{{ $('Normalize Input').item.json.template }}\",\n  \"font\": \"{{ $('Normalize Input').item.json.font }}\",\n  \"emailSent\": {{ $('Has Email?').item.json.email ? 'true' : 'false' }}\n}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1540, -100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Text is required and cannot be empty.\",\n  \"node\": \"validation\"\n}",
+        "options": {}
+      },
+      "id": "respond-validation-error",
+      "name": "Respond Validation Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [440, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"PDF generation API failed.\",\n  \"node\": \"pdf-generation\"\n}",
+        "options": {}
+      },
+      "id": "respond-api-error",
+      "name": "Respond API Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [880, 100]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{ "node": "Normalize Input", "type": "main", "index": 0 }]]
+    },
+    "Normalize Input": {
+      "main": [[{ "node": "Validate Text", "type": "main", "index": 0 }]]
+    },
+    "Validate Text": {
+      "main": [
+        [{ "node": "Call PDF API", "type": "main", "index": 0 }],
+        [{ "node": "Respond Validation Error", "type": "main", "index": 0 }]
+      ]
+    },
+    "Call PDF API": {
+      "main": [[{ "node": "Check API Success", "type": "main", "index": 0 }]]
+    },
+    "Check API Success": {
+      "main": [
+        [{ "node": "Save to Database", "type": "main", "index": 0 }],
+        [{ "node": "Respond API Error", "type": "main", "index": 0 }]
+      ]
+    },
+    "Save to Database": {
+      "main": [[{ "node": "Has Email?", "type": "main", "index": 0 }]]
+    },
+    "Has Email?": {
+      "main": [
+        [{ "node": "Send Email", "type": "main", "index": 0 }],
+        [{ "node": "Respond Success", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Email": {
+      "main": [[{ "node": "Respond Success", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "pdf-converter" }]
+}

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -29,4 +23,20 @@ model Post {
   authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model PdfHistory {
+  id         String   @id @default(cuid())
+  userEmail  String?
+  fileName   String
+  pdfUrl     String
+  template   String   @default("Simple")
+  font       String   @default("Arial")
+  pageSize   String   @default("A4")
+  orientation String  @default("portrait")
+  pageColor  String   @default("#FFFFFF")
+  textColor  String   @default("#000000")
+  textLength Int      @default(0)
+  emailSent  Boolean  @default(false)
+  createdAt  DateTime @default(now())
 }
