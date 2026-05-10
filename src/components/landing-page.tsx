@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Zap,
@@ -8,13 +9,48 @@ import {
   Download,
   FileText,
   Sparkles,
+  Check,
 } from "lucide-react";
+import TemplateGallery from "@/components/template-gallery";
+import { type SampleTemplate } from "@/lib/templates";
 
 interface LandingPageProps {
   onNavigate: () => void;
+  /** Callback when user picks a template from landing page and goes to converter */
+  onSelectTemplate?: (template: SampleTemplate) => void;
 }
 
-export default function LandingPage({ onNavigate }: LandingPageProps) {
+export default function LandingPage({ onNavigate, onSelectTemplate }: LandingPageProps) {
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(undefined);
+
+  const handleSelectTemplate = useCallback(
+    (template: SampleTemplate) => {
+      setSelectedTemplateId(template.id);
+      // If parent provided a callback, use it; otherwise just navigate
+      if (onSelectTemplate) {
+        onSelectTemplate(template);
+      } else {
+        // Store selection in localStorage so converter can pick it up
+        try {
+          localStorage.setItem("pdf-converter-settings", JSON.stringify({
+            template: template.templateStyle,
+            font: template.font,
+            pageColor: template.pageColor,
+            textColor: template.textColor,
+            sampleTemplateId: template.id,
+            pageSize: "A4",
+            orientation: "portrait",
+            email: "",
+          }));
+          // Also store the sample text separately
+          localStorage.setItem("pdf-selected-sample-text", template.sampleText);
+        } catch {}
+        onNavigate();
+      }
+    },
+    [onSelectTemplate, onNavigate]
+  );
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -54,7 +90,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           </h1>
           <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
             Paste your text and download it as a PDF in one click. No sign-up,
-            no hassle — just simple, secure conversion.
+            no hassle — just simple, secure conversion with 15+ beautiful templates.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
@@ -64,14 +100,12 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             >
               Try Now — It&apos;s Free
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={onNavigate}
-              className="text-base px-8 py-6 rounded-xl"
+            <a
+              href="#templates"
+              className="text-base px-8 py-6 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all inline-flex items-center"
             >
-              See How It Works
-            </Button>
+              Browse Templates
+            </a>
           </div>
         </div>
       </section>
@@ -118,8 +152,36 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </section>
 
+      {/* ── Sample Templates Section ── */}
+      <section id="templates" className="py-20 md:py-28">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <TemplateGallery
+            selectedId={selectedTemplateId}
+            onSelectTemplate={handleSelectTemplate}
+            compact={false}
+          />
+          {/* Quick action after selecting */}
+          {selectedTemplateId && (
+            <div className="mt-8 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-full text-primary text-sm font-medium mb-4">
+                <Check className="h-4 w-4" />
+                Template selected! Click below to start editing.
+              </div>
+              <br />
+              <Button
+                size="lg"
+                onClick={onNavigate}
+                className="text-base px-8 py-6 rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all mt-2"
+              >
+                Open in Converter
+              </Button>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-20 md:py-28">
+      <section className="bg-gray-50/80 py-20 md:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Ready to Convert?

@@ -20,20 +20,26 @@ const FONT_MAP: Record<string, { regular: StandardFonts; bold: StandardFonts }> 
   Verdana: { regular: StandardFonts.Helvetica, bold: StandardFonts.HelveticaBold },
 };
 
-// Template definitions
+// Template definitions — 6 base + 15 sample template overrides
 interface TemplateConfig {
   margin: number;
   fontSize: number;
   headingFontSize: number;
   lineHeight: number;
-  headerStyle: "none" | "line" | "bar" | "accent-bar" | "double-line";
+  headerStyle: "none" | "line" | "bar" | "accent-bar" | "double-line" | "sidebar" | "bordered" | "comic" | "certificate" | "storybook";
   accentColor: string;
+  headingColor?: string; // overrides textColor for headings
   spacing: number;
   showPageNumbers: boolean;
   headingSpacing: number;
+  sidebarWidth?: number;
+  sidebarColor?: string;
+  borderColor?: string;
+  footerLine?: boolean;
 }
 
 const TEMPLATES: Record<string, TemplateConfig> = {
+  // ── Original 6 Base Templates ──
   Simple: {
     margin: 50,
     fontSize: 12,
@@ -55,6 +61,7 @@ const TEMPLATES: Record<string, TemplateConfig> = {
     spacing: 4,
     showPageNumbers: true,
     headingSpacing: 10,
+    footerLine: true,
   },
   Modern: {
     margin: 55,
@@ -88,6 +95,7 @@ const TEMPLATES: Record<string, TemplateConfig> = {
     spacing: 2,
     showPageNumbers: false,
     headingSpacing: 6,
+    footerLine: true,
   },
   Report: {
     margin: 60,
@@ -99,6 +107,194 @@ const TEMPLATES: Record<string, TemplateConfig> = {
     spacing: 4,
     showPageNumbers: true,
     headingSpacing: 10,
+  },
+
+  // ── 15 Sample Templates with Custom Styling ──
+
+  "professional-resume": {
+    margin: 45,
+    fontSize: 10,
+    headingFontSize: 13,
+    lineHeight: 15,
+    headerStyle: "sidebar",
+    accentColor: "#3B82F6",
+    headingColor: "#1D4ED8",
+    spacing: 2,
+    showPageNumbers: false,
+    headingSpacing: 6,
+    sidebarWidth: 140,
+    sidebarColor: "#1D4ED8",
+  },
+  "modern-cv": {
+    margin: 55,
+    fontSize: 10.5,
+    headingFontSize: 16,
+    lineHeight: 16,
+    headerStyle: "accent-bar",
+    accentColor: "#14B8A6",
+    headingColor: "#0F766E",
+    spacing: 3,
+    showPageNumbers: false,
+    headingSpacing: 10,
+  },
+  "corporate-report": {
+    margin: 60,
+    fontSize: 11,
+    headingFontSize: 18,
+    lineHeight: 17,
+    headerStyle: "bar",
+    accentColor: "#2563EB",
+    headingColor: "#1E3A5F",
+    spacing: 4,
+    showPageNumbers: true,
+    headingSpacing: 10,
+  },
+  "business-proposal": {
+    margin: 60,
+    fontSize: 11,
+    headingFontSize: 16,
+    lineHeight: 17,
+    headerStyle: "line",
+    accentColor: "#D97706",
+    headingColor: "#92400E",
+    spacing: 4,
+    showPageNumbers: true,
+    headingSpacing: 10,
+    footerLine: true,
+  },
+  invoice: {
+    margin: 50,
+    fontSize: 10.5,
+    headingFontSize: 15,
+    lineHeight: 16,
+    headerStyle: "bar",
+    accentColor: "#10B981",
+    headingColor: "#065F46",
+    spacing: 3,
+    showPageNumbers: false,
+    headingSpacing: 8,
+  },
+  "project-documentation": {
+    margin: 50,
+    fontSize: 10,
+    headingFontSize: 14,
+    lineHeight: 15,
+    headerStyle: "accent-bar",
+    accentColor: "#6366F1",
+    headingColor: "#4338CA",
+    spacing: 3,
+    showPageNumbers: true,
+    headingSpacing: 8,
+  },
+  "academic-notes": {
+    margin: 55,
+    fontSize: 11,
+    headingFontSize: 16,
+    lineHeight: 17,
+    headerStyle: "line",
+    accentColor: "#3B82F6",
+    headingColor: "#1E40AF",
+    spacing: 4,
+    showPageNumbers: true,
+    headingSpacing: 8,
+  },
+  "research-paper": {
+    margin: 65,
+    fontSize: 11,
+    headingFontSize: 16,
+    lineHeight: 17,
+    headerStyle: "line",
+    accentColor: "#374151",
+    headingColor: "#000000",
+    spacing: 4,
+    showPageNumbers: true,
+    headingSpacing: 10,
+    footerLine: true,
+  },
+  certificate: {
+    margin: 50,
+    fontSize: 12,
+    headingFontSize: 22,
+    lineHeight: 20,
+    headerStyle: "certificate",
+    accentColor: "#D97706",
+    headingColor: "#92400E",
+    spacing: 6,
+    showPageNumbers: false,
+    headingSpacing: 14,
+    borderColor: "#D97706",
+  },
+  "ebook-chapter": {
+    margin: 70,
+    fontSize: 12,
+    headingFontSize: 18,
+    lineHeight: 22,
+    headerStyle: "none",
+    accentColor: "#B45309",
+    headingColor: "#78350F",
+    spacing: 6,
+    showPageNumbers: false,
+    headingSpacing: 14,
+  },
+  "meeting-minutes": {
+    margin: 55,
+    fontSize: 10.5,
+    headingFontSize: 15,
+    lineHeight: 16,
+    headerStyle: "bar",
+    accentColor: "#14B8A6",
+    headingColor: "#0F766E",
+    spacing: 3,
+    showPageNumbers: true,
+    headingSpacing: 8,
+  },
+  "personal-letter": {
+    margin: 65,
+    fontSize: 12,
+    headingFontSize: 14,
+    lineHeight: 20,
+    headerStyle: "none",
+    accentColor: "#C2410C",
+    headingColor: "#7C2D12",
+    spacing: 5,
+    showPageNumbers: false,
+    headingSpacing: 10,
+  },
+  "comic-book-classic": {
+    margin: 45,
+    fontSize: 11,
+    headingFontSize: 22,
+    lineHeight: 17,
+    headerStyle: "comic",
+    accentColor: "#FF6F00",
+    headingColor: "#D32F2F",
+    spacing: 4,
+    showPageNumbers: false,
+    headingSpacing: 12,
+  },
+  "manga-style": {
+    margin: 55,
+    fontSize: 11,
+    headingFontSize: 16,
+    lineHeight: 18,
+    headerStyle: "accent-bar",
+    accentColor: "#374151",
+    headingColor: "#000000",
+    spacing: 4,
+    showPageNumbers: false,
+    headingSpacing: 10,
+  },
+  "kids-storybook": {
+    margin: 55,
+    fontSize: 13,
+    headingFontSize: 20,
+    lineHeight: 20,
+    headerStyle: "storybook",
+    accentColor: "#F59E0B",
+    headingColor: "#DC2626",
+    spacing: 6,
+    showPageNumbers: false,
+    headingSpacing: 14,
   },
 };
 
@@ -147,6 +343,14 @@ export async function POST(request: NextRequest) {
     const bgColor = hexToRgb(pageColor);
     const txtColor = hexToRgb(textColor);
     const accentRgb = hexToRgb(tmpl.accentColor);
+    const headingRgb = tmpl.headingColor ? hexToRgb(tmpl.headingColor) : txtColor;
+
+    // For sidebar templates, adjust layout
+    const isSidebar = tmpl.headerStyle === "sidebar" && tmpl.sidebarWidth;
+    const sidebarW = isSidebar ? tmpl.sidebarWidth! : 0;
+    const effectiveMargin = isSidebar ? tmpl.margin : tmpl.margin;
+    const contentMarginLeft = isSidebar ? sidebarW + 15 : effectiveMargin;
+    const contentMarginRight = effectiveMargin;
 
     // Create PDF
     const pdfDoc = await PDFDocument.create();
@@ -156,8 +360,7 @@ export async function POST(request: NextRequest) {
     const regularFont = await pdfDoc.embedFont(fontConfig.regular);
     const boldFont = await pdfDoc.embedFont(fontConfig.bold);
 
-    const margin = tmpl.margin;
-    const maxWidth = width - margin * 2;
+    const maxWidth = width - contentMarginLeft - contentMarginRight;
 
     // Parse text into lines with heading detection
     const rawLines = text.split("\n");
@@ -231,7 +434,7 @@ export async function POST(request: NextRequest) {
     // Calculate which lines go on which page
     const pageBreaks: number[] = [0];
     let currentY = 0;
-    const usableHeight = height - margin * 2;
+    const usableHeight = height - effectiveMargin * 2;
 
     for (let i = 0; i < wrappedLines.length; i++) {
       const lineH = wrappedLines[i].height;
@@ -260,12 +463,50 @@ export async function POST(request: NextRequest) {
         color: rgb(bgColor.r, bgColor.g, bgColor.b),
       });
 
-      // Draw header based on template style
+      // ── Draw sidebar (resume-style) ──
+      if (isSidebar) {
+        const sidebarRgb = tmpl.sidebarColor ? hexToRgb(tmpl.sidebarColor) : accentRgb;
+        page.drawRectangle({
+          x: 0,
+          y: 0,
+          width: sidebarW,
+          height,
+          color: rgb(sidebarRgb.r, sidebarRgb.g, sidebarRgb.b),
+        });
+
+        // Extract sidebar content (lines before first non-heading text or first 3 items)
+        // For simplicity, sidebar shows the first few lines in white
+        const sidebarLines = pageLines.slice(0, Math.min(6, pageLines.length));
+        let sy = height - effectiveMargin - 10;
+        for (const line of sidebarLines) {
+          if (line.text === "") {
+            sy -= line.height;
+            continue;
+          }
+          const currentFont = line.isHeading ? boldFont : regularFont;
+          const currentSize = line.isHeading ? tmpl.headingFontSize - 1 : tmpl.fontSize - 1;
+
+          try {
+            page.drawText(line.text, {
+              x: 10,
+              y: sy,
+              size: currentSize,
+              font: currentFont,
+              color: rgb(1, 1, 1),
+            });
+          } catch {
+            // Skip characters not in font
+          }
+          sy -= line.height;
+        }
+      }
+
+      // ── Draw header based on template style ──
       switch (tmpl.headerStyle) {
         case "line":
           page.drawLine({
-            start: { x: margin, y: height - margin + 15 },
-            end: { x: width - margin, y: height - margin + 15 },
+            start: { x: effectiveMargin, y: height - effectiveMargin + 15 },
+            end: { x: width - effectiveMargin, y: height - effectiveMargin + 15 },
             thickness: 1,
             color: rgb(accentRgb.r, accentRgb.g, accentRgb.b),
           });
@@ -274,7 +515,7 @@ export async function POST(request: NextRequest) {
         case "bar":
           page.drawRectangle({
             x: 0,
-            y: height - margin + 5,
+            y: height - effectiveMargin + 5,
             width,
             height: 20,
             color: rgb(accentRgb.r, accentRgb.g, accentRgb.b),
@@ -284,7 +525,7 @@ export async function POST(request: NextRequest) {
         case "accent-bar":
           page.drawRectangle({
             x: 0,
-            y: height - margin + 5,
+            y: height - effectiveMargin + 5,
             width: 6,
             height: 30,
             color: rgb(accentRgb.r, accentRgb.g, accentRgb.b),
@@ -293,23 +534,123 @@ export async function POST(request: NextRequest) {
 
         case "double-line":
           page.drawLine({
-            start: { x: margin, y: height - margin + 20 },
-            end: { x: width - margin, y: height - margin + 20 },
+            start: { x: effectiveMargin, y: height - effectiveMargin + 20 },
+            end: { x: width - effectiveMargin, y: height - effectiveMargin + 20 },
             thickness: 2,
             color: rgb(accentRgb.r, accentRgb.g, accentRgb.b),
           });
           page.drawLine({
-            start: { x: margin, y: height - margin + 14 },
-            end: { x: width - margin, y: height - margin + 14 },
+            start: { x: effectiveMargin, y: height - effectiveMargin + 14 },
+            end: { x: width - effectiveMargin, y: height - effectiveMargin + 14 },
             thickness: 0.5,
             color: rgb(accentRgb.r, accentRgb.g, accentRgb.b),
           });
           break;
+
+        case "comic":
+          // Bold top bar + accent stripe
+          page.drawRectangle({
+            x: 0,
+            y: height - effectiveMargin + 5,
+            width,
+            height: 24,
+            color: rgb(headingRgb.r, headingRgb.g, headingRgb.b),
+          });
+          page.drawRectangle({
+            x: 0,
+            y: height - effectiveMargin + 5,
+            width,
+            height: 6,
+            color: rgb(accentRgb.r, accentRgb.g, accentRgb.b),
+          });
+          break;
+
+        case "certificate":
+          // Double border frame
+          const borderRgb = tmpl.borderColor ? hexToRgb(tmpl.borderColor) : accentRgb;
+          page.drawRectangle({
+            x: 12,
+            y: 12,
+            width: width - 24,
+            height: height - 24,
+            borderColor: rgb(borderRgb.r, borderRgb.g, borderRgb.b),
+            borderWidth: 2,
+            color: rgb(bgColor.r, bgColor.g, bgColor.b),
+          });
+          page.drawRectangle({
+            x: 18,
+            y: 18,
+            width: width - 36,
+            height: height - 36,
+            borderColor: rgb(borderRgb.r, borderRgb.g, borderRgb.b),
+            borderWidth: 1,
+            color: rgb(bgColor.r, bgColor.g, bgColor.b),
+          });
+          // Corner decorations
+          const cornerSize = 15;
+          const corners = [
+            { x: 24, y: height - 24 },
+            { x: width - 24, y: height - 24 },
+            { x: 24, y: 24 },
+            { x: width - 24, y: 24 },
+          ];
+          for (const corner of corners) {
+            page.drawRectangle({
+              x: corner.x - 3,
+              y: corner.y - 3,
+              width: cornerSize,
+              height: cornerSize,
+              borderColor: rgb(borderRgb.r, borderRgb.g, borderRgb.b),
+              borderWidth: 1,
+              color: rgb(bgColor.r, bgColor.g, bgColor.b),
+            });
+          }
+          break;
+
+        case "storybook":
+          // Colorful wavy-style top bar
+          page.drawRectangle({
+            x: 0,
+            y: height - effectiveMargin + 5,
+            width,
+            height: 28,
+            color: rgb(accentRgb.r, accentRgb.g, accentRgb.b),
+          });
+          // Dot decorations
+          const dotCount = 8;
+          for (let d = 0; d < dotCount; d++) {
+            const dx = (width / dotCount) * d + width / (dotCount * 2);
+            page.drawCircle({
+              x: dx,
+              y: height - effectiveMargin + 19,
+              size: 4,
+              color: rgb(headingRgb.r, headingRgb.g, headingRgb.b),
+            });
+          }
+          break;
+
+        case "sidebar":
+          // Sidebar already drawn above, add a thin separator line
+          if (isSidebar) {
+            page.drawLine({
+              start: { x: sidebarW + 5, y: effectiveMargin },
+              end: { x: sidebarW + 5, y: height - effectiveMargin },
+              thickness: 0.5,
+              color: rgb(0.85, 0.85, 0.85),
+            });
+          }
+          break;
       }
 
-      // Draw text lines
-      let y = height - margin - 10;
-      for (const line of pageLines) {
+      // ── Draw text lines ──
+      let y = height - effectiveMargin - 10;
+
+      // Skip sidebar lines from main content area if sidebar template
+      const mainLines = isSidebar
+        ? pageLines.slice(Math.min(6, pageLines.length))
+        : pageLines;
+
+      for (const line of mainLines) {
         if (line.text === "") {
           y -= line.height;
           continue;
@@ -317,11 +658,14 @@ export async function POST(request: NextRequest) {
 
         const currentFont = line.isHeading ? boldFont : regularFont;
         const currentSize = line.isHeading ? tmpl.headingFontSize : tmpl.fontSize;
+        const currentColor = line.isHeading
+          ? rgb(headingRgb.r, headingRgb.g, headingRgb.b)
+          : rgb(txtColor.r, txtColor.g, txtColor.b);
 
-        // For Modern template: draw accent left bar for headings
-        if (line.isHeading && tmpl.headerStyle === "accent-bar") {
+        // For Modern/accent-bar template: draw accent left bar for headings
+        if (line.isHeading && (tmpl.headerStyle === "accent-bar" || tmpl.headerStyle === "manga-style")) {
           page.drawRectangle({
-            x: margin - 4,
+            x: contentMarginLeft - 4,
             y: y - 3,
             width: 3,
             height: currentSize + 2,
@@ -329,36 +673,57 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        page.drawText(line.text, {
-          x: margin,
-          y,
-          size: currentSize,
-          font: currentFont,
-          color: rgb(txtColor.r, txtColor.g, txtColor.b),
-        });
+        // Comic-style: bold heading underline
+        if (line.isHeading && tmpl.headerStyle === "comic") {
+          page.drawText(line.text.toUpperCase(), {
+            x: contentMarginLeft,
+            y,
+            size: currentSize,
+            font: currentFont,
+            color: currentColor,
+          });
+          page.drawLine({
+            start: { x: contentMarginLeft, y: y - 4 },
+            end: { x: contentMarginLeft + currentFont.widthOfTextAtSize(line.text.toUpperCase(), currentSize), y: y - 4 },
+            thickness: 2,
+            color: rgb(accentRgb.r, accentRgb.g, accentRgb.b),
+          });
+        } else {
+          try {
+            page.drawText(line.text, {
+              x: contentMarginLeft,
+              y,
+              size: currentSize,
+              font: currentFont,
+              color: currentColor,
+            });
+          } catch {
+            // Skip characters not in font
+          }
+        }
 
         y -= line.height;
       }
 
-      // Page numbers
+      // ── Page numbers ──
       if (tmpl.showPageNumbers) {
         const pageNum = p + 1;
         const totalText = `Page ${pageNum}`;
         const pageNumWidth = regularFont.widthOfTextAtSize(totalText, 9);
         page.drawText(totalText, {
           x: (width - pageNumWidth) / 2,
-          y: margin - 20,
+          y: effectiveMargin - 20,
           size: 9,
           font: regularFont,
           color: rgb(0.6, 0.6, 0.6),
         });
       }
 
-      // Footer line for some templates
-      if (tmpl.headerStyle === "line" || tmpl.headerStyle === "double-line") {
+      // ── Footer line ──
+      if (tmpl.footerLine || tmpl.headerStyle === "line" || tmpl.headerStyle === "double-line") {
         page.drawLine({
-          start: { x: margin, y: margin - 8 },
-          end: { x: width - margin, y: margin - 8 },
+          start: { x: effectiveMargin, y: effectiveMargin - 8 },
+          end: { x: width - effectiveMargin, y: effectiveMargin - 8 },
           thickness: 0.5,
           color: rgb(0.85, 0.85, 0.85),
         });

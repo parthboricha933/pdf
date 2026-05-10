@@ -27,8 +27,12 @@ import {
   Info,
   Mail,
   History,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import TemplateGallery from "@/components/template-gallery";
+import { type SampleTemplate, getTemplateById } from "@/lib/templates";
 
 const TEMPLATE_CONFIG = [
   { id: "Simple", description: "Clean and straightforward", accent: "#000000" },
@@ -50,6 +54,7 @@ interface SavedSettings {
   pageSize: string;
   orientation: string;
   email: string;
+  sampleTemplateId?: string;
 }
 
 function loadSettings(): Partial<SavedSettings> {
@@ -90,6 +95,8 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<Array<Record<string, unknown>>>([]);
+  const [selectedSampleId, setSelectedSampleId] = useState<string | undefined>(undefined);
+  const [showTemplates, setShowTemplates] = useState(true);
   const { toast } = useToast();
   const livePreviewTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -103,14 +110,40 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
       if (saved.pageSize) setPageSize(saved.pageSize);
       if (saved.orientation) setOrientation(saved.orientation);
       if (saved.email) setEmail(saved.email);
+      if (saved.sampleTemplateId) setSelectedSampleId(saved.sampleTemplateId);
+
+      // Check for sample text passed from landing page template selection
+      try {
+        const sampleText = localStorage.getItem("pdf-selected-sample-text");
+        if (sampleText) {
+          setText(sampleText);
+          localStorage.removeItem("pdf-selected-sample-text");
+        }
+      } catch {}
+
       setInitialized(true);
     }
   }, [initialized]);
 
   useEffect(() => {
     if (!initialized) return;
-    saveSettings({ pageColor, textColor, font, template, pageSize, orientation, email });
-  }, [pageColor, textColor, font, template, pageSize, orientation, email, initialized]);
+    saveSettings({ pageColor, textColor, font, template, pageSize, orientation, email, sampleTemplateId: selectedSampleId });
+  }, [pageColor, textColor, font, template, pageSize, orientation, email, selectedSampleId, initialized]);
+
+  const handleSelectSampleTemplate = useCallback((tmpl: SampleTemplate) => {
+    setSelectedSampleId(tmpl.id);
+    setTemplate(tmpl.templateStyle);
+    setFont(tmpl.font);
+    setPageColor(tmpl.pageColor);
+    setTextColor(tmpl.textColor);
+    setText(tmpl.sampleText);
+    setIsEnhanced(false);
+    setOriginalText("");
+    toast({
+      title: `Template Applied: ${tmpl.name}`,
+      description: "Settings and sample text have been loaded. Edit the text to customize your PDF.",
+    });
+  }, [toast]);
 
   const handleEnhance = useCallback(async () => {
     if (!text.trim()) {
@@ -155,7 +188,9 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
     setPdfUrl(null);
 
     try {
-      // Call the orchestration webhook (mirrors n8n workflow)
+      // Use sample template ID as the template name if one is selected
+      const effectiveTemplate = selectedSampleId || template;
+
       const response = await fetch("/api/webhook/generate-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -166,7 +201,7 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
           pageColor,
           textColor,
           font,
-          template,
+          template: effectiveTemplate,
           email: email || undefined,
         }),
       });
@@ -191,7 +226,7 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [text, pageSize, orientation, pageColor, textColor, font, template, email, toast]);
+  }, [text, pageSize, orientation, pageColor, textColor, font, template, selectedSampleId, email, toast]);
 
   // Live preview
   useEffect(() => {
@@ -200,10 +235,11 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
 
     livePreviewTimeout.current = setTimeout(async () => {
       try {
+        const effectiveTemplate = selectedSampleId || template;
         const response = await fetch("/api/generate-pdf", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, pageSize, orientation, pageColor, textColor, font, template }),
+          body: JSON.stringify({ text, pageSize, orientation, pageColor, textColor, font, template: effectiveTemplate }),
         });
         const data = await response.json();
         if (data.success && data.pdfUrl) setPdfUrl(data.pdfUrl);
@@ -211,7 +247,7 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
     }, 1500);
 
     return () => { if (livePreviewTimeout.current) clearTimeout(livePreviewTimeout.current); };
-  }, [text, pageSize, orientation, pageColor, textColor, font, template, initialized, isLoading, isEnhancing]);
+  }, [text, pageSize, orientation, pageColor, textColor, font, template, selectedSampleId, initialized, isLoading, isEnhancing]);
 
   const handleDownload = useCallback(() => {
     if (!pdfUrl) return;
@@ -267,6 +303,25 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        {/* ── Sample Templates Section ── */}
+        <div className="mb-8">
+          <button
+            onClick={() => setShowTemplates(!showTemplates)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors mb-4"
+          >
+            {showTemplates ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {showTemplates ? "Hide Templates" : "Show Templates"}
+          </button>
+          {showTemplates && (
+            <TemplateGallery
+              selectedId={selectedSampleId}
+              onSelectTemplate={handleSelectSampleTemplate}
+              compact={true}
+            />
+          )}
+        </div>
+
+        {/* ── Editor + Preview Grid ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Input Panel */}
           <div className="space-y-5">
@@ -327,22 +382,27 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
               )}
             </div>
 
-            {/* Template Selection */}
+            {/* Template Selection (Quick Base Templates) */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Layout className="h-4 w-4 text-gray-500" />
-                <Label className="text-sm font-medium">Template</Label>
+                <Label className="text-sm font-medium">Base Style</Label>
+                {selectedSampleId && (
+                  <span className="text-xs text-primary ml-1">
+                    (Overridden by {getTemplateById(selectedSampleId)?.name || selectedSampleId})
+                  </span>
+                )}
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {TEMPLATE_CONFIG.map((t) => (
                   <button
                     key={t.id}
-                    onClick={() => setTemplate(t.id)}
+                    onClick={() => { setTemplate(t.id); setSelectedSampleId(undefined); }}
                     className={`relative p-3 rounded-xl border-2 text-left transition-all hover:shadow-sm ${
-                      template === t.id ? "border-primary bg-primary/5 shadow-sm" : "border-gray-100 bg-white hover:border-gray-200"
+                      template === t.id && !selectedSampleId ? "border-primary bg-primary/5 shadow-sm" : "border-gray-100 bg-white hover:border-gray-200"
                     }`}
                   >
-                    {template === t.id && <div className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />}
+                    {template === t.id && !selectedSampleId && <div className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />}
                     <div className="h-1.5 w-8 rounded-full mb-2" style={{ backgroundColor: t.accent }} />
                     <p className="text-xs font-semibold text-gray-900">{t.id}</p>
                     <p className="text-[10px] text-gray-400 leading-tight mt-0.5">{t.description}</p>
@@ -468,7 +528,7 @@ export default function ConverterPage({ onNavigate }: ConverterPageProps) {
                     <div className="h-20 w-20 rounded-2xl bg-gray-100 flex items-center justify-center"><Eye className="h-8 w-8" /></div>
                     <div>
                       <p className="font-medium text-gray-400">No preview yet</p>
-                      <p className="text-sm text-gray-300 mt-1">Enter text to see a live preview</p>
+                      <p className="text-sm text-gray-300 mt-1">Enter text or select a template to see a live preview</p>
                     </div>
                   </div>
                 )}
